@@ -172,7 +172,14 @@ function draftFromPackage(
       region: matchedRegion?.name ?? "",
       province: matchedRegion?.provinces.includes(province) ? province : "",
     },
-    categories: (pkg.category ?? []).map(String),
+    // Categorías: chip por chip incluso si el backend trae una sola cadena
+    // separada por comas (datos legacy)
+    categories: (pkg.category ?? []).flatMap((c) =>
+      String(c)
+        .split(/,\s*/)
+        .map((v) => normalizeCategory(v))
+        .filter(Boolean),
+    ),
     highlights: pkg.highlights ?? [],
     included: pkg.included ?? [],
     notIncluded: pkg.notIncluded ?? [],
