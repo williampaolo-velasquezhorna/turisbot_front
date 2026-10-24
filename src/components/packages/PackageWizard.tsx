@@ -566,8 +566,11 @@ export function PackageWizard() {
           // están completos (pasos informativos como Imágenes/Revisión, nunca)
           const index = i + 1;
           const valid =
-            [1, 2, 4, 5].includes(index) &&
-            Object.keys(validateStepOf(index)).length === 0;
+            index === 3
+              ? // Imágenes: completo solo si el paquete tiene al menos una
+                draft.images.length > 0
+              : [1, 2, 4, 5].includes(index) &&
+                Object.keys(validateStepOf(index)).length === 0;
           return (
             <li key={label}>
               <button
