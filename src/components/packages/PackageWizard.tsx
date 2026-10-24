@@ -297,11 +297,18 @@ export function PackageWizard() {
     [enabledCountries],
   );
 
+  // Una región está activa si: su país está habilitado y (¿o no maneja
+  // provincias?.LookAndFeel) todas sus provincias no están deshabilitadas
   const enabledRegions = useMemo(
     () =>
-      (regions.data ?? []).filter((r) =>
-        enabledCountriesSet.has(r.country || "Perú"),
-      ),
+      (regions.data ?? []).filter((r) => {
+        if (!enabledCountriesSet.has(r.country || "Perú")) return false;
+        const provinces = r.provinces ?? [];
+        // Regiones sin catálogo de provincias: activa por definición
+        if (provinces.length === 0) return true;
+        const disabled = r.disabledProvinces ?? [];
+        return provinces.some((p) => !disabled.includes(p));
+      }),
     [regions.data, enabledCountriesSet],
   );
 
