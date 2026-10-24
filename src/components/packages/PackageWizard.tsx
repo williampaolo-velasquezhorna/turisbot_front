@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Field, TagInput } from "../ui/Form";
 import { InlineSpinner } from "../ui/Skeleton";
@@ -193,6 +193,12 @@ export function PackageWizard() {
   const [saving, setSaving] = useState(false);
   const [mappedId, setMappedId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // El input de nombre recibe el foco cada vez que se llega al paso 1
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (step === 1) nameRef.current?.focus();
+  }, [step]);
 
   // Si regresas al wizard desde el historial del navegador (bfcache), se
   // restaura la página en caliente: reinicia el borrador en ese caso
@@ -250,6 +256,14 @@ export function PackageWizard() {
     setDraft(
       draftFromPackage(editingPackage.data, countries.data, regions.data),
     );
+  }
+  // Entrar a "Crear Paquete" (sin id) después de una edición o visita previa:
+  // reinicia todo el wizard a sus valores por defecto
+  if (!editingId && mappedId !== null) {
+    setMappedId(null);
+    setDraft(EMPTY_DRAFT);
+    setStep(1);
+    setErrors({});
   }
 
   const countryRegions = useMemo(
@@ -435,7 +449,8 @@ export function PackageWizard() {
         if (!d.title.trim())
           nextErrors[`itinerary-${d.day}`] = "Este día necesita un título";
         if (!d.description?.trim())
-          nextErrors[`itinerary-desc-${d.day}`] = "Este día necesita una descripción";
+          nextErrors[`itinerary-desc-${d.day}`] =
+            "Este día necesita una descripción";
       });
     }
 
@@ -586,9 +601,9 @@ export function PackageWizard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Nombre" required error={errors["name"]}>
               <input
+                ref={nameRef}
                 type="text"
                 id="wizard-package-name"
-                autoFocus
                 className={inputCls("name")}
                 placeholder="Ej: Tour Gocta Completo"
                 value={form.name}
@@ -1038,8 +1053,8 @@ export function PackageWizard() {
         <section>
           <p className="text-sm text-gray-500 mb-1">
             Los días se generan automáticamente según la duración seleccionada
-            en Detalles ({form.durationDays} día(s)). Cada día debe tener
-            título y descripción obligatorios.
+            en Detalles ({form.durationDays} día(s)). Cada día debe tener título
+            y descripción obligatorios.
           </p>
           {errors["itinerary"] && (
             <p className="text-xs text-red-600 font-medium mb-3">
