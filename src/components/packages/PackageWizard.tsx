@@ -434,6 +434,8 @@ export function PackageWizard() {
       draft.itinerary.forEach((d) => {
         if (!d.title.trim())
           nextErrors[`itinerary-${d.day}`] = "Este día necesita un título";
+        if (!d.description?.trim())
+          nextErrors[`itinerary-desc-${d.day}`] = "Este día necesita una descripción";
       });
     }
 
@@ -945,19 +947,26 @@ export function PackageWizard() {
             Imágenes del paquete
           </span>
           <p className="text-sm text-gray-500 mb-3">
-            Sube imágenes desde tu dispositivo (se comprimen automáticamente).
-            La primera será la imagen principal.
+            Sube imágenes desde tu dispositivo.
           </p>
           <input
             type="file"
+            id="wizard-uploads"
             accept="image/*"
             multiple
-            className="form-input"
+            className="sr-only"
             onChange={(e) => {
               void handleImageFiles(e.target.files);
               e.target.value = "";
             }}
           />
+          <button
+            type="button"
+            className="btn-primary inline-flex items-center gap-2"
+            onClick={() => document.getElementById("wizard-uploads")?.click()}
+          >
+            📷 Subir fotos
+          </button>
           <div className="flex flex-wrap mt-4 gap-2.5">
             {draft.images.map((src, i) => (
               <div key={i} className="relative">
@@ -968,11 +977,6 @@ export function PackageWizard() {
                   className="rounded-lg object-cover border border-gray-200"
                   style={{ width: 160, height: 160, maxWidth: 160 }}
                 />
-                {i === 0 && (
-                  <span className="absolute top-1 left-1 bg-blue-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
-                    Principal
-                  </span>
-                )}
                 <button
                   type="button"
                   aria-label="Eliminar imagen"
@@ -982,7 +986,7 @@ export function PackageWizard() {
                       images: d.images.filter((_, j) => j !== i),
                     }))
                   }
-                  className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-white/90 text-red-600 shadow hover:bg-white"
+                  className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-white/90 text-red-600 shadow hover:bg-white cursor-pointer"
                 >
                   ✕
                 </button>
@@ -1034,8 +1038,8 @@ export function PackageWizard() {
         <section>
           <p className="text-sm text-gray-500 mb-1">
             Los días se generan automáticamente según la duración seleccionada
-            en Detalles ({form.durationDays} día(s)). Cada día debe tener un
-            título obligatorio.
+            en Detalles ({form.durationDays} día(s)). Cada día debe tener
+            título y descripción obligatorios.
           </p>
           {errors["itinerary"] && (
             <p className="text-xs text-red-600 font-medium mb-3">
@@ -1046,7 +1050,7 @@ export function PackageWizard() {
             {draft.itinerary.map((item, i) => (
               <div
                 key={i}
-                className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                className="border border-gray-200 rounded-lg p-4 bg-white"
               >
                 <div className="mb-2">
                   <span className="text-sm font-bold text-blue-700">
@@ -1069,9 +1073,13 @@ export function PackageWizard() {
                       }
                     />
                   </Field>
-                  <Field label="Descripción">
+                  <Field
+                    label="Descripción"
+                    required
+                    error={errors[`itinerary-desc-${item.day}`]}
+                  >
                     <textarea
-                      className="form-input"
+                      className={inputCls(`itinerary-desc-${item.day}`)}
                       rows={3}
                       placeholder="Qué se hará ese día"
                       value={item.description}
