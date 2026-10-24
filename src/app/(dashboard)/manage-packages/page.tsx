@@ -129,9 +129,7 @@ function PackageDetailView({ pkg }: { pkg: Package }) {
   const { data: serviceTypes = [] } = useQuery({
     queryKey: ["service-types"],
     queryFn: () =>
-      import("@/lib/api/service-types").then((m) =>
-        m.serviceTypesApi.list(),
-      ),
+      import("@/lib/api/service-types").then((m) => m.serviceTypesApi.list()),
   });
   const serviceTypeLabel =
     serviceTypes.find((t) => t.slug === pkg.serviceType)?.name ?? "—";
@@ -156,8 +154,9 @@ function PackageDetailView({ pkg }: { pkg: Package }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h4 className="text-xl font-bold text-gray-900">{pkg.name}</h4>
+            <p className="text-sm text-gray-500 mt-1">📍 {pkg.destination}</p>
             <p className="text-sm text-gray-500 mt-1">
-              📍 {pkg.destination} · {pkg.duration}
+              ⏱️ Duración: {pkg.duration}
             </p>
             {categories.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-2">
@@ -212,6 +211,21 @@ function PackageDetailView({ pkg }: { pkg: Package }) {
             </dd>
           </div>
         </dl>
+
+        {(pkg.images ?? []).length > 0 && (
+          <div className="flex flex-wrap gap-2.5 mt-6">
+            {(pkg.images ?? []).map((img, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={img}
+                alt="Imagen del paquete"
+                className="rounded-lg object-cover border border-gray-200"
+                style={{ width: 160, height: 160, maxWidth: 160 }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {(pkg.itinerary ?? []).length > 0 && (
@@ -231,21 +245,6 @@ function PackageDetailView({ pkg }: { pkg: Package }) {
               </li>
             ))}
           </ol>
-        </div>
-      )}
-
-      {(pkg.images ?? []).length > 0 && (
-        <div className="flex flex-wrap gap-2.5">
-          {(pkg.images ?? []).map((img, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={img}
-              alt="Imagen del paquete"
-              className="rounded-lg object-cover border border-gray-200"
-              style={{ width: 160, height: 160, maxWidth: 160 }}
-            />
-          ))}
         </div>
       )}
 
