@@ -25,6 +25,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Todos los botones interactivos con cursor pointer (Tailwind v4 usa cursor
+ * default en <button>), respetando el estado disabled */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 /* ---------- Utilidades de marca ---------- */
 .gradient-bg {
   background: var(--gradient-bg);
