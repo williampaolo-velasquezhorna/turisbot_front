@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { StatCardSkeleton } from "@/components/ui/Skeleton";
 import { GlobeIcon, MapPinIcon } from "@/components/ui/icons";
@@ -79,6 +80,29 @@ export default function PanelPage() {
     queryKey: ["regions"],
     queryFn: () => destinationsApi.findRegions(),
   });
+  const activeCountries = useQuery({
+    queryKey: ["countries"],
+    queryFn: () => destinationsApi.findEnabledCountries(),
+    select: (data) => data.filter((c) => c.enabled),
+  });
+
+  // Card "Destinos": cuenta provincias habilitadas de regiones/estados
+  // activos (país habilitado y provincia no deshabilitada), no el total
+  // del catálogo
+  const activeDestinationCount = useMemo(() => {
+    if (!regionsCount.data) return 0;
+    const countryEnabled = new Set(
+      (activeCountries.data ?? []).map((c) => c.name),
+    );
+    let count = 0;
+    for (const region of regionsCount.data) {
+      if (!countryEnabled.has(region.country || "Perú")) continue;
+      count += (region.provinces ?? []).filter(
+        (p) => !(region.disabledProvinces ?? []).includes(p),
+      ).length;
+    }
+    return count;
+  }, [regionsCount.data, activeCountries.data]);
 
   return (
     <PageShell title="Panel de Control" subtitle="Resumen general de TurisBot">
@@ -97,7 +121,7 @@ export default function PanelPage() {
         <StatCard
           label="Destinos"
           value={
-            regionsCount.isFetching ? null : regionsCount.data?.length ?? 0
+            regionsCount.isFetching ? null : activeDestinationCount
           }
           accent="blue"
           icon={<MapPinIcon className="w-6 h-6" />}
