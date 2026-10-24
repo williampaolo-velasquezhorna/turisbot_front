@@ -336,7 +336,7 @@ export default function ManagePackagesPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex items-center gap-4">
             <h3 className="text-lg font-semibold text-gray-800">
-              Listado de Paquetes
+              Listado de paquetes
             </h3>
             <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
               {data?.total ?? 0} paquetes
@@ -356,7 +356,7 @@ export default function ManagePackagesPage() {
               className="btn-primary flex items-center gap-2 w-fit"
             >
               <PlusIcon />
-              Nuevo Paquete
+              Añadir
             </Link>
           </div>
         </div>

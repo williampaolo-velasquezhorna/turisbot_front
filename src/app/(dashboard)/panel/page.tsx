@@ -135,7 +135,7 @@ export default function PanelPage() {
               <span className="text-blue-600 font-bold text-xl">+</span>
             </div>
             <div>
-              <p className="font-medium text-gray-800">Nuevo Paquete</p>
+              <p className="font-medium text-gray-800">Añadir</p>
               <p className="text-sm text-gray-500">
                 Agregar un nuevo paquete turístico
               </p>
@@ -149,7 +149,7 @@ export default function PanelPage() {
               🌍
             </div>
             <div>
-              <p className="font-medium text-gray-800">Listado de Paquetes</p>
+              <p className="font-medium text-gray-800">Listado de paquetes</p>
               <p className="text-sm text-gray-500">
                 Administrar los paquetes existentes
               </p>
