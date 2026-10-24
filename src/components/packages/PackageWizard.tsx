@@ -251,7 +251,13 @@ export function PackageWizard() {
     enabled: !!editingId,
     queryFn: () => packagesApi.find(editingId!),
   });
-  if (editingPackage.data && editingId && mappedId !== editingId) {
+  if (
+    editingPackage.data &&
+    editingId &&
+    countries.data &&
+    regions.data &&
+    mappedId !== editingId
+  ) {
     setMappedId(editingId);
     setDraft(
       draftFromPackage(editingPackage.data, countries.data, regions.data),
@@ -264,6 +270,11 @@ export function PackageWizard() {
     setDraft(EMPTY_DRAFT);
     setStep(1);
     setErrors({});
+  }
+  // Al cambiar de paquete en edición, el guardado anterior ya terminó:
+  // desbloquea el botón (antes quedaba "Guardando..." de forma permanente)
+  if (editingId && mappedId !== editingId && saving) {
+    setSaving(false);
   }
 
   const countryRegions = useMemo(
@@ -509,7 +520,10 @@ export function PackageWizard() {
     saveMutation.mutate(collectData());
   };
 
-  if (editingId && editingPackage.isLoading) {
+  if (
+    editingId &&
+    (editingPackage.isLoading || !countries.data || !regions.data)
+  ) {
     return <InlineSpinner text="Cargando paquete..." />;
   }
 
@@ -1151,7 +1165,7 @@ export function PackageWizard() {
               type="button"
               onClick={handleSubmit}
               className="btn-primary"
-              disabled={saving}
+              disabled={saving || saveMutation.isPending}
             >
               {saving ? "Guardando..." : "Guardar paquete"}
             </button>
