@@ -9,70 +9,32 @@ import { ChevronDownIcon } from "@/components/ui/icons";
 import { destinationsApi } from "@/lib/api/destinations";
 import type { DestinationRegion } from "@/types";
 
-/** Tarjeta de región con checkboxes de provincias y commit automático */
+/** Tarjeta de región: el catálogo de provincias es fijo;
+ *  desmarcar solo deshabilita (nunca elimina). */
 function RegionCard({
   region,
   onChange,
 }: {
   region: DestinationRegion;
-  onChange: (provinces: string[]) => void;
+  onChange: (disabledProvinces: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [newProvinces, setNewProvinces] = useState("");
-  const { showToast } = useToast();
-
   const allProvinces = region.provinces ?? [];
-  const [selected, setSelected] = useState<Set<string>>(new Set(allProvinces));
+  const disabledSet = new Set(region.disabledProvinces ?? []);
 
-  // Si la región llega actualizada desde el servidor, resincronizar
-  const lastSynced = useRef(region.provinces);
-  useEffect(() => {
-    if (region.provinces !== lastSynced.current) {
-      lastSynced.current = region.provinces;
-      setSelected(new Set(region.provinces));
-    }
-  }, [region.provinces]);
-
-  const isAll =
-    selected.size === allProvinces.length && allProvinces.length > 0;
-  const isNone = selected.size === 0;
+  const isAll = disabledSet.size === 0 && allProvinces.length > 0;
+  const isNone = disabledSet.size === allProvinces.length;
   const indeterminate = !isAll && !isNone;
 
-  const commit = (next: Set<string>) => {
-    setSelected(next);
-    onChange(
-      allProvinces
-        .filter((p) => next.has(p))
-        .sort((a, b) => a.localeCompare(b)),
-    );
+  const applyChange = (next: Set<string>) => {
+    onChange(allProvinces.filter((p) => next.has(p)));
   };
 
-  const addProvinces = () => {
-    const values = newProvinces
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean);
-    if (values.length === 0) {
-      showToast("Escribe al menos una provincia", "error");
-      return;
-    }
-    const existing = new Set(allProvinces.map((p) => p.toLowerCase()));
-    const fresh = values.filter((v) => !existing.has(v.toLowerCase()));
-    if (fresh.length === 0) {
-      showToast("Esas provincias ya existen", "error");
-      return;
-    }
-
-    const enriched = new Set(selected);
-    for (const value of fresh) enriched.add(value);
-    setNewProvinces("");
-    setSelected(enriched);
-    onChange(
-      allProvinces
-        .concat(fresh)
-        .filter((p) => enriched.has(p))
-        .sort((a, b) => a.localeCompare(b)),
-    );
+  const toggle = (prov: string, checked: boolean) => {
+    const next = new Set(disabledSet);
+    if (checked) next.delete(prov);
+    else next.add(prov);
+    applyChange(next);
   };
 
   return (
@@ -104,9 +66,9 @@ function RegionCard({
               }}
               onChange={(e) => {
                 const next = e.target.checked
-                  ? new Set(allProvinces)
-                  : new Set<string>();
-                commit(next);
+                  ? new Set<string>()
+                  : new Set(allProvinces);
+                applyChange(next);
               }}
             />
             Toda la región ({allProvinces.length} provincias)
@@ -117,34 +79,12 @@ function RegionCard({
               <label key={prov} className="province-check">
                 <input
                   type="checkbox"
-                  checked={selected.has(prov)}
-                  onChange={(e) => {
-                    const next = new Set(selected);
-                    if (e.target.checked) next.add(prov);
-                    else next.delete(prov);
-                    commit(next);
-                  }}
+                  checked={!disabledSet.has(prov)}
+                  onChange={(e) => toggle(prov, e.target.checked)}
                 />
                 {prov}
               </label>
             ))}
-          </div>
-
-          <div className="flex gap-2 mt-3">
-            <input
-              type="text"
-              className="form-input flex-1"
-              placeholder="Nuevas provincias (separadas por coma)"
-              value={newProvinces}
-              onChange={(e) => setNewProvinces(e.target.value)}
-            />
-            <button
-              type="button"
-              onClick={addProvinces}
-              className="btn-primary"
-            >
-              Añadir
-            </button>
           </div>
         </div>
       )}
@@ -167,7 +107,7 @@ function CountryCard({
   };
   regions: DestinationRegion[];
   onToggleEnabled: (enabled: boolean) => void;
-  onRegionChange: (region: DestinationRegion, provinces: string[]) => void;
+  onRegionChange: (region: DestinationRegion, disabledProvinces: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
   const { showToast } = useToast();
@@ -227,7 +167,7 @@ function CountryCard({
             <RegionCard
               key={region._id}
               region={region}
-              onChange={(provinces) => onRegionChange(region, provinces)}
+              onChange={(disabledProvinces) => onRegionChange(region, disabledProvinces)}
             />
           ))}
         </div>
@@ -286,11 +226,15 @@ export default function ManageDestinationsPage() {
   const updateRegion = useMutation({
     mutationFn: ({
       region,
-      provinces,
+      disabledProvinces,
     }: {
       region: DestinationRegion;
-      provinces: string[];
-    }) => destinationsApi.updateRegion(region._id, provinces),
+      disabledProvinces: string[];
+    }) =>
+      destinationsApi.updateRegion(region._id, {
+        provinces: region.provinces ?? [],
+        disabledProvinces,
+      }),
     onSuccess: () => {
       showToast("Provincias guardadas");
       void queryClient.invalidateQueries({ queryKey: ["regions"] });
@@ -345,8 +289,8 @@ export default function ManageDestinationsPage() {
                     onToggleEnabled={(enabled) =>
                       toggleCountry.mutate({ id: country._id, enabled })
                     }
-                    onRegionChange={(region, provinces) =>
-                      updateRegion.mutate({ region, provinces })
+                    onRegionChange={(region, disabledProvinces) =>
+                      updateRegion.mutate({ region, disabledProvinces })
                     }
                   />
                 ))}

@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import {
-  ChevronDownIcon,
-  DashboardIcon,
-  GlobeIcon,
-  MapPinIcon,
-} from "../ui/icons";
+import { ChevronDownIcon, DashboardIcon, GlobeIcon } from "../ui/icons";
 
 interface NavItem {
   href: string;
@@ -26,13 +21,9 @@ const NAV_ITEMS: NavItem[] = [
     children: [
       { href: "/manage-packages", label: "Listado de paquetes" },
       { href: "/manage-packages/create", label: "Crear Paquete" },
-      { href: "/manage-service-types", label: "Tipos de Servicio" },
+      { href: "/manage-service-types", label: "Tipos de servicio" },
+      { href: "/manage-destinations", label: "Destinos" },
     ],
-  },
-  {
-    href: "/manage-destinations",
-    label: "Destinos",
-    icon: <MapPinIcon />,
   },
 ];
 
@@ -53,7 +44,7 @@ export function Sidebar({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const [packagesOpen, setPackagesOpen] = useState(true);
+  const [submenuOpen, setPackagesOpen] = useState(false);
 
   return (
     <aside
@@ -101,13 +92,13 @@ export function Sidebar({
                     >
                       <ChevronDownIcon
                         className={`w-4 h-4 transition-transform ${
-                          packagesOpen ? "" : "-rotate-90"
+                          submenuOpen ? "" : "-rotate-90"
                         }`}
                       />
                     </button>
                   )}
                 </div>
-                {item.children && packagesOpen && (
+                {item.children && submenuOpen && (
                   <div className="mt-1 ml-6 space-y-1">
                     {item.children.map((child) => (
                       <Link

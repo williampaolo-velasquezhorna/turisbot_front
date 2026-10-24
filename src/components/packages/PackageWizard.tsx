@@ -284,20 +284,39 @@ export function PackageWizard() {
     setSaving(false);
   }
 
+  // Vistas filtradas por el estado del catálogo (países/regiones habilitados
+  // y provincias no deshabilitadas) — refleja al instante lo configurado
+  // en Destinos, aunque la caché compartida incluya el listado completo
+  const enabledCountries = useMemo(
+    () => (countries.data ?? []).filter((c) => c.enabled),
+    [countries.data],
+  );
+
+  const enabledCountriesSet = useMemo(
+    () => new Set(enabledCountries.map((c) => c.name)),
+    [enabledCountries],
+  );
+
+  const enabledRegions = useMemo(
+    () =>
+      (regions.data ?? []).filter((r) =>
+        enabledCountriesSet.has(r.country || "Perú"),
+      ),
+    [regions.data, enabledCountriesSet],
+  );
+
   const countryRegions = useMemo(
     () =>
-      (regions.data ?? []).filter(
-        (r) => (r.country || "Perú") === form.country,
-      ),
-    [regions.data, form.country],
+      enabledRegions.filter((r) => (r.country || "Perú") === form.country),
+    [enabledRegions, form.country],
   );
 
   const selectedRegion = useMemo(
     () =>
-      (regions.data ?? []).find(
+      enabledRegions.find(
         (r) => r.name === form.region && (r.country || "Perú") === form.country,
-      ) ?? (regions.data ?? []).find((r) => r.name === form.region),
-    [regions.data, form.region, form.country],
+      ) ?? enabledRegions.find((r) => r.name === form.region),
+    [enabledRegions, form.region, form.country],
   );
 
   // Itinerario generado según la duración
@@ -722,7 +741,7 @@ export function PackageWizard() {
                 }
               >
                 <option value="">Seleccionar país...</option>
-                {(countries.data ?? []).map((c) => (
+                {enabledCountries.map((c) => (
                   <option key={c._id} value={c.name}>
                     {c.name}
                   </option>
@@ -756,11 +775,16 @@ export function PackageWizard() {
                 onChange={(e) => setForm({ province: e.target.value })}
               >
                 <option value="">Toda la región</option>
-                {(selectedRegion?.provinces ?? []).map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
+                {(selectedRegion?.provinces ?? [])
+                  .filter(
+                    (p) =>
+                      !(selectedRegion?.disabledProvinces ?? []).includes(p),
+                  )
+                  .map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
               </select>
             </Field>
           </div>

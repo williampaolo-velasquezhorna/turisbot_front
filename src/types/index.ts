@@ -70,6 +70,7 @@ export interface DestinationRegion {
   name: string;
   country: string;
   provinces: string[];
+  disabledProvinces?: string[];
 }
 
 export interface ServiceType {

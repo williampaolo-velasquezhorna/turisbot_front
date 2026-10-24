@@ -30,10 +30,13 @@ export const destinationsApi = {
       auth: true,
     }),
 
-  updateRegion: (id: string, provinces: string[]) =>
+  updateRegion: (
+    id: string,
+    payload: { provinces: string[]; disabledProvinces?: string[] },
+  ) =>
     apiFetch<DestinationRegion>(`/destinations/regions/${id}`, {
       method: "PUT",
-      body: { provinces },
+      body: payload,
       auth: true,
     }),
 
