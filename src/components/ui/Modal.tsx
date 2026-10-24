@@ -52,7 +52,7 @@ export function Modal({
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 cursor-pointer"
               aria-label="Cerrar"
             >
               <CloseIcon className="w-6 h-6" />

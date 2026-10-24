@@ -674,6 +674,10 @@ body {
   color: white;
   transition: background 0.2s;
 }
+.chat-close-btn {
+  cursor: pointer;
+}
+
 .chat-close-btn:hover {
   background: rgba(255, 255, 255, 0.3);
 }

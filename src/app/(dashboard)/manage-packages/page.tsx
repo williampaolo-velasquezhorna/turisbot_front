@@ -301,7 +301,7 @@ export default function ManagePackagesPage() {
   });
 
   const limit = data?.limit ?? 10;
-  const startRow = (data?.page ?? page - 1) * limit;
+  const startRow = ((data?.page ?? page) - 1) * (data?.limit ?? 10);
 
   const findMutation = useQuery({
     queryKey: ["packages", viewingId],
